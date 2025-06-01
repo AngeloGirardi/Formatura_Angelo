@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Presentes - Formatura</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-6xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">🎓 Meus Presentes de Formatura</h1>
+
+    <div id="gift-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+
+    <!-- Modal de Cotas -->
+    <div id="quota-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg max-w-md w-full text-center">
+        <h2 id="modal-title" class="text-xl font-semibold mb-4"></h2>
+        <p id="modal-subtitle" class="mb-4 text-gray-700"></p>
+        <div class="flex items-center justify-center gap-4 mb-4">
+          <button onclick="decrementCotas()" class="bg-gray-300 hover:bg-gray-400 text-black px-3 py-2 rounded text-xl">-</button>
+          <span id="cotas-count" class="text-lg font-semibold">1</span>
+          <button onclick="incrementCotas()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-xl">+</button>
+        </div>
+        <p class="mb-4">Valor total: <span id="valor-total" class="font-bold">R$ 0,00</span></p>
+        <button id="pix-btn" onclick="transferirPix()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">Transferir via PIX</button>
+        <button onclick="closeQuotaModal()" class="ml-2 text-sm text-gray-600 underline mt-2 block">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Modal do QR Code -->
+    <div id="qrcode-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg max-w-sm text-center">
+        <h2 class="text-lg font-semibold mb-2">Escaneie o QR Code PIX</h2>
+        <img id="qrcode-img" class="mx-auto my-4" src="" alt="QR Code PIX">
+        <button onclick="closeQrModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chavePIX = 'seuchave@pix.com'; // Substitua pela sua chave PIX
+    const valorCotaPadrao = 25;
+    let presenteAtual = null;
+    let cotasSelecionadas = 1;
+
+    const presentes = [
+      {
+        nome: 'Viagem para o Rio de Janeiro',
+        imagem: 'https://source.unsplash.com/400x300/?rio',
+        total: 600
+      },
+      {
+        nome: 'Notebook para o trabalho',
+        imagem: 'https://source.unsplash.com/400x300/?laptop',
+        total: 2500
+      },
+      {
+        nome: 'Cadeira de escritório',
+        imagem: 'https://source.unsplash.com/400x300/?chair,office',
+        total: 500
+      }
+    ];
+
+    function gerarQRCode(valor, descricao) {
+      return `https://pix.qrcode.studio/qr?size=300&amount=${valor}&message=${encodeURIComponent(descricao)}&recipient=${encodeURIComponent(chavePIX)}`;
+    }
+
+    function mostrarQRCode(valor, descricao) {
+      document.getElementById('qrcode-img').src = gerarQRCode(valor, descricao);
+      document.getElementById('qrcode-modal').classList.remove('hidden');
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrcode-modal').classList.add('hidden');
+    }
+
+    function closeQuotaModal() {
+      document.getElementById('quota-modal').classList.add('hidden');
+    }
+
+    function incrementCotas() {
+      cotasSelecionadas++;
+      atualizarValorTotal();
+    }
+
+    function decrementCotas() {
+      if (cotasSelecionadas > 1) {
+        cotasSelecionadas--;
+        atualizarValorTotal();
+      }
+    }
+
+    function atualizarValorTotal() {
+      document.getElementById('cotas-count').innerText = cotasSelecionadas;
+      const total = (valorCotaPadrao * cotasSelecionadas).toFixed(2).replace('.', ',');
+      document.getElementById('valor-total').innerText = `R$ ${total}`;
+    }
+
+    function transferirPix() {
+      const total = (valorCotaPadrao * cotasSelecionadas).toFixed(2);
+      mostrarQRCode(total, `${presenteAtual.nome} - ${cotasSelecionadas} cotas de R$ ${valorCotaPadrao}`);
+      closeQuotaModal();
+    }
+
+    function mostrarModal(presente) {
+      presenteAtual = presente;
+      cotasSelecionadas = 1;
+      const qtdCotas = Math.ceil(presente.total / valorCotaPadrao);
+      document.getElementById('modal-title').innerText = presente.nome;
+      document.getElementById('modal-subtitle').innerText = `${qtdCotas}x cotas de R$ ${valorCotaPadrao}`;
+      atualizarValorTotal();
+      document.getElementById('quota-modal').classList.remove('hidden');
+    }
+
+    const grid = document.getElementById('gift-grid');
+    presentes.forEach(presente => {
+      const qtdCotas = Math.ceil(presente.total / valorCotaPadrao);
+      const card = document.createElement('div');
+      card.className = 'bg-white shadow rounded overflow-hidden flex flex-col';
+      card.innerHTML = `
+        <img src="${presente.imagem}" alt="${presente.nome}" class="w-full h-48 object-cover">
+        <div class="p-4 flex flex-col justify-between flex-grow">
+          <h3 class="font-semibold text-lg mb-2">${presente.nome}</h3>
+          <p class="text-gray-700 mb-2">${qtdCotas}x cotas de R$ ${valorCotaPadrao}</p>
+          <button onclick='mostrarModal(${JSON.stringify(presente)})' class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-auto">Presentear</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  </script>
+</body>
+</html>
