@@ -38,6 +38,16 @@
     </div>
   </div>
 
+  <div id="pix-copia-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg max-w-sm text-center">
+        <h2 class="text-lg font-semibold mb-2">Copie o código PIX</h2>
+        <input id="pix-copia-input" class="w-full border p-2" type="text" readonly>
+        <button onclick="copiarPix()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded mt-2">Copiar PIX</button>
+        <button onclick="closePixCopiaModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-2">Fechar</button>
+    </div>
+</div>
+
+
   <script>
     const chavePIX = '91ddbf33-f0ff-46e9-a1f3-d3e652711d11'; // Substitua pela sua chave PIX
     const valorCotaPadrao = 25;
@@ -98,9 +108,26 @@
     }
 
     function transferirPix() {
-      const total = (valorCotaPadrao * cotasSelecionadas).toFixed(2);
-      mostrarQRCode(total, `${presenteAtual.nome} - ${cotasSelecionadas} cotas de R$ ${valorCotaPadrao}`);
-      closeQuotaModal();
+    const total = (valorCotaPadrao * cotasSelecionadas).toFixed(2);
+    mostrarQRCode(total, `${presenteAtual.nome} - ${cotasSelecionadas} cotas de R$ ${valorCotaPadrao}`);
+
+    // Exibe o código PIX Copia e Cola
+    const pixCopiaCola = "00020101021126580014br.gov.bcb.pix013691ddbf33-f0ff-46e9-a1f3-d3e652711d115204000053039865802BR5923ANGELO DA SILVA GIRARDI6013CAPAO DA CANO62070503***630457C4";
+    document.getElementById("pix-copia-input").value = pixCopiaCola;
+    document.getElementById("pix-copia-modal").classList.remove("hidden");
+
+    closeQuotaModal();
+    }
+
+    function copiarPix() {
+    const input = document.getElementById("pix-copia-input");
+    input.select();
+    document.execCommand("copy");
+    alert("Código PIX copiado!");
+    }
+    
+    function closePixCopiaModal() {
+        document.getElementById("pix-copia-modal").classList.add("hidden");
     }
 
     function mostrarModal(presente) {
